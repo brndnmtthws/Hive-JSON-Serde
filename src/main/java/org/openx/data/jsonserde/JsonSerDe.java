@@ -51,6 +51,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.ByteObjectInspect
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.TimestampObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.JavaTimestampObjectInspector;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
@@ -84,6 +85,7 @@ public class JsonSerDe implements SerDe {
     public static final String PROP_IGNORE_MALFORMED_JSON = "ignore.malformed.json";
     Map<String,Boolean> columnIsDouble;
     Map<String,Boolean> columnIsLong;
+    Map<String,Boolean> columnIsTimestamp;
 
 	JsonStructOIOptions options;
 
@@ -166,6 +168,18 @@ public class JsonSerDe implements SerDe {
 			c++;
 		}
 
+		c = 0;
+		for (TypeInfo t : columnTypes) {
+			cid[c] = t.toString().toLowerCase().equals("timestamp");
+			c++;
+		}
+		c = 0;
+		columnIsTimestamp = new HashMap<String, Boolean>();
+		for (String s : columnNames) {
+			columnIsTimestamp.put(s, cid[c]);
+			c++;
+		}
+
 
         // other configuration
         ignoreMalformedJson = Boolean.parseBoolean(tbl
@@ -219,6 +233,10 @@ public class JsonSerDe implements SerDe {
 							  columnIsLong.get(key.toLowerCase()) &&
 							  (value instanceof Integer)) {
 						value = new Long(((Integer)value).longValue());
+					} else if (columnIsTimestamp.containsKey(key.toLowerCase()) &&
+							  columnIsTimestamp.get(key.toLowerCase()) &&
+							  (value instanceof String)) {
+						value = java.sql.Timestamp.valueOf(((String)value));
 					}
 					return super.put(key.toLowerCase(),
 							value);
@@ -386,7 +404,15 @@ public class JsonSerDe implements SerDe {
 							result = (((StringObjectInspector)poi).getPrimitiveJavaObject(obj));
 							break;
 						case TIMESTAMP:
-							result = (((TimestampObjectInspector)poi).getPrimitiveJavaObject(obj));
+							try {
+								result = (((JavaTimestampObjectInspector)poi).getPrimitiveJavaObject(obj));
+							} catch (ClassCastException f) {
+								try {
+									result = (((TimestampObjectInspector)poi).getPrimitiveJavaObject(obj));
+								} catch (ClassCastException f2) {
+									result = java.sql.Timestamp.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj)));
+								}
+							}
 							break;
 						case BINARY:
 							result = (((BinaryObjectInspector)poi).getPrimitiveJavaObject(obj));
