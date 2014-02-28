@@ -85,6 +85,7 @@ public class JsonSerDe implements SerDe {
     public static final String PROP_IGNORE_MALFORMED_JSON = "ignore.malformed.json";
     Map<String,Boolean> columnIsDouble;
     Map<String,Boolean> columnIsLong;
+    Map<String,Boolean> columnIsInteger;
     Map<String,Boolean> columnIsTimestamp;
 
 	JsonStructOIOptions options;
@@ -170,6 +171,18 @@ public class JsonSerDe implements SerDe {
 
 		c = 0;
 		for (TypeInfo t : columnTypes) {
+			cid[c] = t.toString().toLowerCase().equals("int");
+			c++;
+		}
+		c = 0;
+		columnIsInteger = new HashMap<String, Boolean>();
+		for (String s : columnNames) {
+			columnIsInteger.put(s, cid[c]);
+			c++;
+		}
+
+		c = 0;
+		for (TypeInfo t : columnTypes) {
 			cid[c] = t.toString().toLowerCase().equals("timestamp");
 			c++;
 		}
@@ -231,8 +244,12 @@ public class JsonSerDe implements SerDe {
 						value = new Double(((Integer)value).doubleValue());
 					} else if (columnIsLong.containsKey(key.toLowerCase()) &&
 							  columnIsLong.get(key.toLowerCase()) &&
-							  (value instanceof Integer)) {
-						value = new Long(((Integer)value).longValue());
+							  (value instanceof Integer || value instanceof String)) {
+						value = Long.valueOf(value.toString()).longValue();
+					} else if (columnIsInteger.containsKey(key.toLowerCase()) &&
+							  columnIsInteger.get(key.toLowerCase()) &&
+							  (value instanceof String)) {
+						value = Integer.valueOf(value.toString()).intValue();
 					} else if (columnIsTimestamp.containsKey(key.toLowerCase()) &&
 							  columnIsTimestamp.get(key.toLowerCase()) &&
 							  (value instanceof String)) {
@@ -388,23 +405,23 @@ public class JsonSerDe implements SerDe {
 							result = (((FloatObjectInspector)poi).get(obj));
 							break;
 						case INT:
-                                                        try {
-                                                          result = (((IntObjectInspector)poi).get(obj));
-                                                        } catch (ClassCastException ignored) {
-                                                          result = Integer.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).intValue();
-                                                        }
-                                                        break;
-                                                case LONG:
-                                                        try {
-                                                          result = (((LongObjectInspector)poi).get(obj));
-                                                        } catch (ClassCastException ignored) {
-                                                          try {
-                                                            result = Long.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).longValue();
-                                                          } catch (ClassCastException alsoIgnored) {
-                                                            result = Integer.valueOf((((IntObjectInspector)poi).get(obj))).longValue();
-                                                          }
-                                                        }
-                                                        break;
+							try {
+								result = (((IntObjectInspector)poi).get(obj));
+							} catch (ClassCastException ignored) {
+								result = Integer.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).intValue();
+							}
+							break;
+						case LONG:
+							try {
+								result = (((LongObjectInspector)poi).get(obj));
+							} catch (ClassCastException ignored) {
+								try {
+									result = Long.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).longValue();
+								} catch (ClassCastException alsoIgnored) {
+									result = Integer.valueOf((((IntObjectInspector)poi).get(obj))).longValue();
+								}
+							}
+							break;
 						case SHORT:
 							result = (((ShortObjectInspector)poi).get(obj));
 							break;
