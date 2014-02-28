@@ -388,15 +388,23 @@ public class JsonSerDe implements SerDe {
 							result = (((FloatObjectInspector)poi).get(obj));
 							break;
 						case INT:
-							result = (((IntObjectInspector)poi).get(obj));
-							break;
-						case LONG:
-							try {
-								result = (((LongObjectInspector)poi).get(obj));
-							} catch (ClassCastException f) {
-								result = java.lang.Integer.valueOf((((IntObjectInspector)poi).get(obj))).longValue();
-							}
-							break;
+                                                        try {
+                                                          result = (((IntObjectInspector)poi).get(obj));
+                                                        } catch (ClassCastException ignored) {
+                                                          result = Integer.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).intValue();
+                                                        }
+                                                        break;
+                                                case LONG:
+                                                        try {
+                                                          result = (((LongObjectInspector)poi).get(obj));
+                                                        } catch (ClassCastException ignored) {
+                                                          try {
+                                                            result = Long.valueOf((((StringObjectInspector)poi).getPrimitiveJavaObject(obj))).longValue();
+                                                          } catch (ClassCastException alsoIgnored) {
+                                                            result = Integer.valueOf((((IntObjectInspector)poi).get(obj))).longValue();
+                                                          }
+                                                        }
+                                                        break;
 						case SHORT:
 							result = (((ShortObjectInspector)poi).get(obj));
 							break;
