@@ -153,11 +153,7 @@ public class JsonSerDe implements SerDe {
 		c = 0;
 		columnIsDouble = new HashMap<String, Boolean>();
 		for (String s : columnNames) {
-			if (options.getMappings().containsKey(s)) {
-				columnIsDouble.put(options.getMappings().get(s), cid[c]);
-			} else {
-				columnIsDouble.put(s, cid[c]);
-			}
+			columnIsDouble.put(s, cid[c]);
 			c++;
 		}
 
@@ -169,11 +165,7 @@ public class JsonSerDe implements SerDe {
 		c = 0;
 		columnIsLong = new HashMap<String, Boolean>();
 		for (String s : columnNames) {
-			if (options.getMappings().containsKey(s)) {
-				columnIsLong.put(options.getMappings().get(s), cid[c]);
-			} else {
-				columnIsLong.put(s, cid[c]);
-			}
+			columnIsLong.put(options.getMappings().get(s), cid[c]);
 			c++;
 		}
 
@@ -185,11 +177,7 @@ public class JsonSerDe implements SerDe {
 		c = 0;
 		columnIsInteger = new HashMap<String, Boolean>();
 		for (String s : columnNames) {
-			if (options.getMappings().containsKey(s)) {
-				columnIsInteger.put(options.getMappings().get(s), cid[c]);
-			} else {
-				columnIsInteger.put(s, cid[c]);
-			}
+			columnIsInteger.put(s, cid[c]);
 			c++;
 		}
 
@@ -201,14 +189,9 @@ public class JsonSerDe implements SerDe {
 		c = 0;
 		columnIsTimestamp = new HashMap<String, Boolean>();
 		for (String s : columnNames) {
-			if (options.getMappings().containsKey(s)) {
-				columnIsTimestamp.put(options.getMappings().get(s), cid[c]);
-			} else {
-				columnIsTimestamp.put(s, cid[c]);
-			}
+			columnIsTimestamp.put(s, cid[c]);
 			c++;
 		}
-
 
 		// other configuration
 		ignoreMalformedJson = Boolean.parseBoolean(tbl
